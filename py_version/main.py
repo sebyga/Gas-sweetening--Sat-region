@@ -55,3 +55,47 @@ rec_res_tmp = ipsa.Rec(x_guess,P_h,P_l,
 
 print(' "Rec" funciton output is:')
 print(rec_res_tmp)        
+
+#### Ideal PSA with various sorbents ####
+### CO2 Case
+P_h_range = np.arange(2,18.1,0.25)
+x_guess = [0.8,0.1,0.1]
+y_feed_in = [0.6,0.15,0.25]# (mol/mol) feed composition
+T_feed_in = 343         # (K) temperature or 298K
+P_l = 1                     # (bar) vacuum pressure
+T_tri = [298.15,]*3
+rec_result = []
+sf_result = []
+sf_arg_result = []
+
+
+for bin,dH,nam in zip(bins_CO2,dH_CO2,Names_CO2):
+    rec_list_tmp = []
+    sf_list_tmp = []
+    sf_arg_list_tmp = []
+    for P in P_h_range:
+        rec_tmp,sf_tmp = ipsa.Rec(x_guess,P,P_l,bin,dH, T_tri,y_feed_in, T_feed_in)
+        rec_list_tmp.append(rec_tmp)
+        sf_list_tmp.append(np.min(sf_tmp))
+        sf_arg_list_tmp.append(np.argmin(sf_tmp))
+    rec_list = np.array(rec_list_tmp)
+    rec_result.append(rec_list)
+    sf_arg_list = np.array(sf_arg_list_tmp)
+    sf_arg_result.append(sf_arg_list)
+    print(nam,': ', rec_list[-2:], sf_arg_list[-1])
+    sf_list = np.array(sf_list_tmp)
+    sf_result.append(sf_list)
+
+### Sort CO2 Case Result!
+rec_last = []
+for rec_list in rec_result:
+    rec_last.append(rec_list[-1])
+rec_last = np.array(rec_last)
+ind_des = np.argsort(rec_last, )
+print(ind_des)
+
+# Arrange with the index
+rec_result_sort = np.array(rec_result)[ind_des][::-1]
+sf_result_sort = np.array(sf_result)[ind_des][::-1]
+Names_CO2_sort= Names_CO2[ind_des][::-1]
+sf_arg_result_sort = np.array(sf_arg_result)[ind_des][::-1]
