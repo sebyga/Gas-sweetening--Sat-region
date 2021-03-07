@@ -86,14 +86,21 @@ def iso_mix(P_par, T, iso_list, dH_list,Tref_list):
                                             warningoff=True)
 
                             except:
-                                arg_max = np.argmax(p_tmp)
-                                p_tmp[p_tmp<0.000001] = 0.000001
-                                x_IG = 0.01*np.ones(len(p_tmp))
-                                x_IG[arg_max] = 1 - 0.01*(len(p_tmp)-1)
-                                #print(x_IG)
-                                q_IAST_tmp = pyiast.iast(p_tmp,
-                                                iso_list,adsorbed_mole_fraction_guess = x_IG,
-                                            warningoff=True)                                
+                                try:
+                                    arg_max = np.argmax(p_tmp)
+                                    p_tmp[p_tmp<0.000001] = 0.000001
+                                    x_IG = 0.01*np.ones(len(p_tmp))
+                                    x_IG[arg_max] = 1 - 0.01*(len(p_tmp)-1)
+                                    #print(x_IG)
+                                    q_IAST_tmp = pyiast.iast(p_tmp,iso_list,adsorbed_mole_fraction_guess = x_IG,warningoff=True)                                
+                                except:
+                                    arg_valid = p_tmp/np.sum(p_tmp) > 1E-4
+                                    x_IG = 1/np.sum(arg_valid)*np.ones(np.sum(arg_valid))
+                                    p_tmp2 = p_tmp[arg_valid]
+                                    iso_list2 = np.array(iso_list)[arg_valid]
+                                    q_small = pyiast.iast(p_tmp2,iso_list2,adsorbed_mole_fraction_guess = x_IG,warningoff = True)
+                                    q_IAST_tmp = np.zeros(len(p_tmp))
+                                    q_IAST_tmp[arg_valid] = q_small
            
     return q_IAST_tmp
 
@@ -178,7 +185,7 @@ def Rec(x_ini,P_high,P_low,iso_input, dH_input, Tref_input,yfeed,Tfeed):
   
 
     def x_obj(x_in):
-        x_exh, s_f,i_lead = x2x(x_in,P_high,P_low,
+        x_exh, _,_ = x2x(x_in,P_high,P_low,
                                 iso_input,dH_input,Tref_input,
                                 yfeed,Tfeed)
         return (x_exh-x_in)**2*100

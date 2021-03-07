@@ -18,6 +18,7 @@ folder_base = os.getcwd()
 print('Currrent path is ... :')
 print(folder_base)
 
+#### Isotherm Data Importing  ####
 df_NAME=pd.read_csv("HEAT_0215.csv")
 
 bins_H2S = []
@@ -36,8 +37,18 @@ for nam in df_NAME["NAME"]:
 
 Names_CO2=df_NAME["NAME"].to_numpy()
 Names_H2S=df_NAME["NAME"].to_numpy()
-dH_CO2 = np.array([df_NAME["CH4_Heat"],df_NAME["H2S_Heat"],df_NAME["CO2_Heat"]]).T
-dH_H2S = np.array([df_NAME["CH4_Heat"],df_NAME["H2S_Heat"],df_NAME["CO2_Heat"]]).T
+
+dH_CO2_tmp = np.array(
+    [df_NAME["CH4_Heat"].to_numpy(),
+    df_NAME["H2S_Heat"].to_numpy(),
+    df_NAME["CO2_Heat"].to_numpy()])
+dH_CO2 = np.transpose(dH_CO2_tmp)
+
+dH_H2S_tmp = np.array(
+    [df_NAME["CH4_Heat"].to_numpy(),
+    df_NAME["H2S_Heat"].to_numpy(),
+    df_NAME["CO2_Heat"].to_numpy()])
+dH_H2S = np.transpose(dH_H2S_tmp)
 
 os.chdir(folder_base)
 
@@ -49,12 +60,13 @@ P_h = 10
 P_l = 0.2
 T_tri = [298,]*3
 rec_res_tmp = ipsa.Rec(x_guess,P_h,P_l,
-              bins_CO2[1],dH_CO2[1], T_tri,
+              bins_CO2[1], dH_CO2[1,:], T_tri,
               y_feed_in, T_feed_in)
             
+print(dH_CO2[2,:])
 
 print(' "Rec" funciton output is:')
-print(rec_res_tmp)        
+print(rec_res_tmp)
 
 #### Ideal PSA with various sorbents ####
 ### CO2 Case
@@ -68,13 +80,16 @@ rec_result = []
 sf_result = []
 sf_arg_result = []
 
+Comp_names = [['CH4'],
+['H2S'],
+['CO2']]
 
-for bin,dH,nam in zip(bins_CO2,dH_CO2,Names_CO2):
+for binn,dH,nam in zip(bins_CO2,dH_CO2,Names_CO2):
     rec_list_tmp = []
     sf_list_tmp = []
     sf_arg_list_tmp = []
     for P in P_h_range:
-        rec_tmp,sf_tmp = ipsa.Rec(x_guess,P,P_l,bin,dH, T_tri,y_feed_in, T_feed_in)
+        rec_tmp,sf_tmp = ipsa.Rec(x_guess,P,P_l,binn,dH, T_tri,y_feed_in, T_feed_in)
         rec_list_tmp.append(rec_tmp)
         sf_list_tmp.append(np.min(sf_tmp))
         sf_arg_list_tmp.append(np.argmin(sf_tmp))
@@ -82,7 +97,9 @@ for bin,dH,nam in zip(bins_CO2,dH_CO2,Names_CO2):
     rec_result.append(rec_list)
     sf_arg_list = np.array(sf_arg_list_tmp)
     sf_arg_result.append(sf_arg_list)
-    print(nam,': ', rec_list[-2:], sf_arg_list[-1])
+    print(nam,': Rec. = {0:.2f} %'.format(rec_list[-1]),
+    'Leading Heavy = ', Comp_names[sf_arg_list[-1]])
+
     sf_list = np.array(sf_list_tmp)
     sf_result.append(sf_list)
 
