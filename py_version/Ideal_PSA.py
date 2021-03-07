@@ -131,10 +131,8 @@ def x2x(x_ini,P_high,P_low,iso_input, dH_input, Tref_input,yfeed,Tfeed):
     P_low_part = np.array(x_ini)*P_low      # (bar): partial pressure
     P_high_part = np.array(yfeed)*P_high    # (bar): partial pressure
     ### Uptakes
-    q_des = iso_mix(P_low_part,Tfeed,iso,
-                    dH_input,Tref_input)
-    q_sat_tot = iso_mix(P_high_part,Tfeed,iso,
-                        dH_input,Tref_input)
+    q_des = iso_mix(P_low_part,Tfeed,iso, dH,Tref_input)
+    q_sat_tot = iso_mix(P_high_part,Tfeed,iso, dH,Tref_input)
     Dq_tot = q_sat_tot-q_des
     ### Leading component ?
     sat_extent = np.array(yfeed)/Dq_tot # Saturation extent kg/mol
